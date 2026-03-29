@@ -1,0 +1,8 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "haskell-opac:lib"
+    - path: "./app"
+      component: "haskell-opac:exe:haskell-opac-exe"
+    - path: "./test"
+      component: "haskell-opac:test:haskell-opac-test"

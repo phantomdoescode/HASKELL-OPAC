@@ -16,11 +16,24 @@ extra-source-files:
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
+# common to point users to the README.md Models.User
 description:         Please see the README on GitHub at <https://github.com/githubuser/haskell-opac#readme>
 
 dependencies:
 - base >= 4.7 && < 5
+# SQlite Database
+- sqlite-simple 
+# Haskell CLI Interface
+- haskeline 
+# Text & Formatting
+- text
+- bytestring
+- time 
+# App Architecture (Monad)
+- mtl
+- transformers
+# Password Hashing
+- bcrypt 
 
 ghc-options:
 - -Wall
