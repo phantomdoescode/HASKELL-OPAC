@@ -2,6 +2,9 @@ module Models.User where
 
 import Data.Text (Text)
 import Data.Time (Day)
+import Database.SQLite.Simple (FromRow (..), field)
+import Database.SQLite.Simple.ToField (toField)
+import Database.SQLite.Simple.ToRow (ToRow (..))
 
 data User = User
   { userID :: Int,
@@ -14,3 +17,26 @@ data User = User
     userOrganization :: Text
   }
   deriving (Show, Eq)
+
+instance FromRow User where
+  fromRow =
+    User
+      <$> field -- user_id
+      <*> field -- password_hash
+      <*> field -- first_name
+      <*> field -- last_name
+      <*> field -- email
+      <*> field -- birth_date
+      <*> field -- occupation
+      <*> field -- organization
+
+instance ToRow User where
+  toRow u =
+    [ toField (userPasswordHash u),
+      toField (userFirstName u),
+      toField (userLastName u),
+      toField (userEmail u),
+      toField (userBirthDate u),
+      toField (userOccupation u),
+      toField (userOrganization u)
+    ]
