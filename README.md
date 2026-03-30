@@ -11,19 +11,19 @@ Table of Contents
 - Contributors
 
 Rationale
-[Rationale Here]
+- [Rationale Here]
 
 Installation Guide
-[Installation Guide Here]
+- [Installation Guide Here]
 
 Setting the project environment
-[Project env Here]
+- [Project env Here]
 
 Features
-[Core Features Here]
+- [Core Features Here]
 
 Programming
-[Programming Here]
+- [Programming Here]
 
 Contributors
 | Name | Role |
