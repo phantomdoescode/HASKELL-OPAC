@@ -5,6 +5,7 @@ module Queries.Reservation
   , getReservationsByUser
   , getReservationByID
   , getReservationByUserAndBook
+  , getNextReservationForBook
   , deleteReservation
   ) where
 
@@ -48,6 +49,16 @@ getReservationByUserAndBook uid bid = do
   rows <- liftIO $ query conn
     "SELECT * FROM reservations WHERE user_id = ? AND book_id = ?"
     (uid, bid)
+  case rows of
+    [] -> return Nothing
+    r : _ -> return (Just r)
+
+getNextReservationForBook :: Int -> AppM (Maybe Reservation)
+getNextReservationForBook bid = do
+  conn <- asks envConnection
+  rows <- liftIO $ query conn
+    "SELECT * FROM reservations WHERE book_id = ? ORDER BY reservation_date ASC LIMIT 1"
+    (Only bid)
   case rows of
     [] -> return Nothing
     r : _ -> return (Just r)

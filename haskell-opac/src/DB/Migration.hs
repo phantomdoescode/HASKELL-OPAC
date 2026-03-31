@@ -6,8 +6,10 @@ module DB.Migration
 where
 
 import DB.Schema
-  ( createBooksTable,
+  ( createAuditLogsTable,
+    createBooksTable,
     createBorrowRecordsTable,
+    createCopiesTable,
     createReservationsTable,
     createUsersTable,
   )
@@ -48,6 +50,36 @@ migrations =
     ),
     ( 2,
       [ \conn -> execute_ conn createReservationsTable
+      ]
+    ),
+    ( 3,
+      [ \conn -> execute_ conn "DROP TABLE IF EXISTS reservations",
+        \conn -> execute_ conn "DROP TABLE IF EXISTS borrow_records",
+        \conn -> execute_ conn "DROP TABLE IF EXISTS books",
+        \conn -> execute_ conn "DROP TABLE IF EXISTS users",
+        \conn -> execute_ conn "DROP TABLE IF EXISTS copies",
+        \conn -> execute_ conn "DROP TABLE IF EXISTS audit_logs",
+        \conn -> execute_ conn createUsersTable,
+        \conn -> execute_ conn createBooksTable,
+        \conn -> execute_ conn createCopiesTable,
+        \conn -> execute_ conn createBorrowRecordsTable,
+        \conn -> execute_ conn createReservationsTable,
+        \conn -> execute_ conn createAuditLogsTable
+      ]
+    ),
+    ( 4,
+      [ \conn -> execute_ conn "DROP TABLE IF EXISTS reservations",
+        \conn -> execute_ conn "DROP TABLE IF EXISTS borrow_records",
+        \conn -> execute_ conn "DROP TABLE IF EXISTS books",
+        \conn -> execute_ conn "DROP TABLE IF EXISTS users",
+        \conn -> execute_ conn "DROP TABLE IF EXISTS copies",
+        \conn -> execute_ conn "DROP TABLE IF EXISTS audit_logs",
+        \conn -> execute_ conn createUsersTable,
+        \conn -> execute_ conn createBooksTable,
+        \conn -> execute_ conn createCopiesTable,
+        \conn -> execute_ conn createBorrowRecordsTable,
+        \conn -> execute_ conn createReservationsTable,
+        \conn -> execute_ conn createAuditLogsTable
       ]
     )
   ]

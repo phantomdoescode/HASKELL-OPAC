@@ -6,7 +6,6 @@ module CLI.User.Auth
   ) where
 
 import Control.Monad.IO.Class (liftIO)
-import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (fromGregorian)
 import App.Env (AppM)
@@ -14,7 +13,7 @@ import App.Error (AppError(..))
 import Models.User (User(..))
 import Services.Auth (registerUser, loginUser)
 import CLI.Display (printHeader, printSuccess, printError)
-import CLI.Prompt (ask, askHidden)
+import CLI.Prompt (ask, askHidden, selectFrom)
 
 registerScreen :: AppM ()
 registerScreen = do
@@ -25,10 +24,14 @@ registerScreen = do
   lastName     <- liftIO $ ask "Last Name"
   occupation   <- liftIO $ ask "Occupation"
   organization <- liftIO $ ask "Organization"
+  userTypeChoice <- liftIO $ selectFrom "Register as:" ["User", "Admin"]
+  let uType = case userTypeChoice of
+                Just 2 -> "admin"
+                _      -> "user"
   -- Simple fixed birth date for now, can be improved later
   let birthDate = fromGregorian 2000 1 1
   result <- registerUser email password firstName lastName
-              birthDate occupation organization
+              birthDate occupation organization uType
   case result of
     Left (AlreadyExists msg) -> liftIO $ printError (T.pack msg)
     Left (AuthError msg)     -> liftIO $ printError (T.pack msg)

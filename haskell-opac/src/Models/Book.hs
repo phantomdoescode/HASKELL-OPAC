@@ -11,9 +11,7 @@ data Book = Book
     bookAuthor :: Text,
     bookPublication :: Text,
     bookISBN :: Text,
-    bookGenre :: Text,
-    bookAvailableCopies :: Int,
-    bookTotalCopies :: Int
+    bookGenre :: Text
   }
   deriving (Show, Eq)
 
@@ -25,8 +23,6 @@ instance FromRow Book where
     <*> field  -- publication
     <*> field  -- isbn
     <*> field  -- genre
-    <*> field  -- available_copies
-    <*> field  -- total_copies
 
 instance ToRow Book where
   toRow b =
@@ -35,6 +31,4 @@ instance ToRow Book where
     , toField (bookPublication     b)
     , toField (bookISBN            b)
     , toField (bookGenre           b)
-    , toField (bookAvailableCopies b)
-    , toField (bookTotalCopies     b)
     ]

@@ -11,7 +11,7 @@ import Database.SQLite.Simple.ToField (toField)
 data BorrowRecord = BorrowRecord
   { borrowID         :: Int
   , borrowUserID     :: Int
-  , borrowBookID     :: Int
+  , borrowCopyID     :: Int
   , borrowDate       :: Day
   , borrowDueDate    :: Day
   , borrowReturnDate :: Maybe Day
@@ -22,7 +22,7 @@ instance FromRow BorrowRecord where
   fromRow = BorrowRecord
     <$> field  -- borrow_id
     <*> field  -- user_id
-    <*> field  -- book_id
+    <*> field  -- copy_id
     <*> field  -- borrow_date
     <*> field  -- due_date
     <*> field  -- return_date
@@ -31,7 +31,7 @@ instance FromRow BorrowRecord where
 instance ToRow BorrowRecord where
   toRow r =
     [ toField (borrowUserID     r)
-    , toField (borrowBookID     r)
+    , toField (borrowCopyID     r)
     , toField (borrowDate       r)
     , toField (borrowDueDate    r)
     , toField (borrowReturnDate r)

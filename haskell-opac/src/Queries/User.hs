@@ -7,6 +7,7 @@ module Queries.User
   , getAllUsers
   , updateUserProfile
   , updateUserPassword
+  , updateUserFineBalance
   , deleteUser
   ) where
 
@@ -22,8 +23,8 @@ insertUser u = do
   conn <- asks envConnection
   liftIO $ execute conn
     "INSERT INTO users \
-    \ (password_hash, first_name, last_name, email, birth_date, occupation, organization) \
-    \ VALUES (?, ?, ?, ?, ?, ?, ?)"
+    \ (password_hash, first_name, last_name, email, birth_date, occupation, organization, fine_balance, user_type) \
+    \ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     u
 
 getUserByEmail :: Text -> AppM (Maybe User)
@@ -68,8 +69,15 @@ updateUserPassword uid hash = do
     "UPDATE users SET password_hash = ? WHERE user_id = ?"
     (hash, uid)
 
+updateUserFineBalance :: Int -> Double -> AppM ()
+updateUserFineBalance uid fine = do
+  conn <- asks envConnection
+  liftIO $ execute conn
+    "UPDATE users SET fine_balance = ? WHERE user_id = ?"
+    (fine, uid)
+
 deleteUser :: Int -> AppM ()
 deleteUser uid = do
   conn <- asks envConnection
   liftIO $ execute conn
-    "DELETE FROM users WHERE user_id = ?" (Only uid)
+    "DELETE FROM users WHERE user_id = ?" (Only uid)

@@ -3,39 +3,50 @@
 module Services.Borrow
   ( borrowBook
   , returnBook
+  , calculateFine
   ) where
 
 import Control.Monad.Reader (ask, liftIO, runReaderT)
-import Data.Time (Day)
+import Data.Time (Day, diffDays)
 import App.Env (AppM, Env(..))
 import App.Error (AppError(..))
 import DB.Connection (withTransaction)
 import Models.Book (Book(..))
 import Models.BorrowRecord (BorrowRecord(..))
 import Models.User (User(..))
-import Queries.Book (getBookByID, updateBookCopies)
+import Models.Copy (Copy(..))
+import Queries.Copy (getAvailableCopy, updateCopyStatus, getCopyByID)
 import Queries.BorrowRecord (insertBorrowRecord, markAsReturned)
+import Queries.User (getUserByID, updateUserFineBalance)
+import Services.Notification (publishReturnEvent)
+
+dailyRate :: Double
+dailyRate = 5.0
+
+fineCap :: Double
+fineCap = 500.0
 
 borrowBook :: User -> Book -> Day -> Day -> AppM (Either AppError ())
-borrowBook user book borrowDate dueDate = do
+borrowBook user book bDate dueDate = do
   env <- ask
-  if bookAvailableCopies book <= 0
-    then return $ Left (ValidationError "This book is not currently available.")
-    else liftIO $ withTransaction (envConnection env) $ do
-      runReaderT action env
+  mCopy <- getAvailableCopy (bookID book)
+  case mCopy of
+    Nothing -> return $ Left (ValidationError "No copies of this book are currently available.")
+    Just copy -> liftIO $ withTransaction (envConnection env) $ do
+      runReaderT (action copy) env
       return $ Right ()
   where
-    action :: AppM ()
-    action = do
-      insertBorrowRecord borrowRecord
-      updateBookCopies (bookID book) (bookAvailableCopies book - 1)
+    action :: Copy -> AppM ()
+    action copy = do
+      insertBorrowRecord (borrowRecord copy)
+      updateCopyStatus (copyID copy) "Borrowed"
 
-    borrowRecord =
+    borrowRecord copy =
       BorrowRecord
         { borrowID = 0
         , borrowUserID = userID user
-        , borrowBookID = bookID book
-        , borrowDate = borrowDate
+        , borrowCopyID = copyID copy
+        , borrowDate = bDate
         , borrowDueDate = dueDate
         , borrowReturnDate = Nothing
         , borrowIsReturned = False
@@ -44,9 +55,25 @@ borrowBook user book borrowDate dueDate = do
 returnBook :: BorrowRecord -> Day -> AppM (Either AppError ())
 returnBook record returnDate = do
   env <- ask
-  mBook <- liftIO $ runReaderT (getBookByID (borrowBookID record)) env
-  case mBook of
-    Nothing -> return $ Left (DBError "Unable to return book because it no longer exists.")
-    Just book -> liftIO $ withTransaction (envConnection env) $ do
-      runReaderT (markAsReturned (borrowID record) returnDate >> updateBookCopies (bookID book) (bookAvailableCopies book + 1)) env
+  mUser <- getUserByID (borrowUserID record)
+  mCopy <- getCopyByID (borrowCopyID record)
+  case (mUser, mCopy) of
+    (Just user, Just copy) -> liftIO $ withTransaction (envConnection env) $ do
+      -- Mark record as returned
+      runReaderT (markAsReturned (borrowID record) returnDate) env
+      -- Update copy status
+      runReaderT (updateCopyStatus (copyID copy) "Available") env
+      -- Calculate and update fine
+      let fine = calculateFine (borrowDueDate record) returnDate
+      if fine > 0
+        then runReaderT (updateUserFineBalance (userID user) (userFineBalance user + fine)) env
+        else return ()
+      -- Trigger notification for reservations
+      runReaderT (publishReturnEvent (copyBookID copy)) env
       return $ Right ()
+    _ -> return $ Left (DBError "Required records for returning book not found.")
+
+calculateFine :: Day -> Day -> Double
+calculateFine dueDate returnDate =
+  let l = max 0 (diffDays returnDate dueDate)
+  in min (fromIntegral l * dailyRate) fineCap

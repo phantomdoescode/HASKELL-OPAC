@@ -15,9 +15,10 @@ import Models.Book (Book(..))
 import Models.BorrowRecord (BorrowRecord(..))
 import Models.Reservation (Reservation(..))
 import Models.User (User(..))
+import Models.Copy (Copy(..))
 import Queries.Book (searchBooks, getAllBooks, getBookByID)
+import Queries.Copy (getCopyByID)
 import Queries.BorrowRecord (getActiveBorrowsByUser)
-import Queries.Reservation (getReservationsByUser)
 import Services.Borrow (borrowBook, returnBook)
 import Services.Profile (changePassword, updateProfile)
 import Services.Reservation
@@ -83,11 +84,10 @@ borrowReturnScreen user = do
 borrowBookFlow :: User -> AppM ()
 borrowBookFlow user = do
   books <- getAllBooks
-  let availableBooks = filter ((> 0) . bookAvailableCopies) books
-  if null availableBooks
-    then liftIO $ printInfo "There are no available books to borrow right now."
+  if null books
+    then liftIO $ printInfo "There are no books in the catalog."
     else do
-      maybeBook <- liftIO $ selectBook availableBooks
+      maybeBook <- liftIO $ selectBook books
       case maybeBook of
         Nothing -> liftIO $ printInfo "No book selected."
         Just book -> do
@@ -213,6 +213,7 @@ viewProfile :: User -> AppM ()
 viewProfile user = do
   liftIO $ printUser user
   liftIO $ printInfo $ "Birthdate: " <> T.pack (show $ userBirthDate user)
+  liftIO $ printInfo $ "Fine Balance: $" <> T.pack (show $ userFineBalance user)
 
 editProfileFlow :: User -> AppM User
 editProfileFlow user = do
@@ -263,24 +264,27 @@ selectBook books = do
       T.pack (show $ bookID book)
         <> " - "
         <> bookTitle book
-        <> " ("
-        <> T.pack (show $ bookAvailableCopies book)
-        <> " available)"
+        <> " by "
+        <> bookAuthor book
 
 selectBorrowRecord :: [BorrowRecord] -> AppM (Maybe BorrowRecord)
 selectBorrowRecord records = do
   options <- forM records $ \record -> do
-    mbBook <- getBookByID (borrowBookID record)
-    let title = maybe ("Book " <> T.pack (show $ borrowBookID record)) bookTitle mbBook
-    return
-      ( T.pack (show $ borrowID record)
-          <> " - "
-          <> title
-          <> " (due "
-          <> T.pack (show $ borrowDueDate record)
-          <> ")",
-        record
-      )
+    mCopy <- getCopyByID (borrowCopyID record)
+    case mCopy of
+      Nothing -> return ("Unknown Copy " <> T.pack (show $ borrowCopyID record), record)
+      Just copy -> do
+        mbBook <- getBookByID (copyBookID copy)
+        let title = maybe ("Book ID " <> T.pack (show $ copyBookID copy)) bookTitle mbBook
+        return
+          ( T.pack (show $ borrowID record)
+              <> " - "
+              <> title
+              <> " (due "
+              <> T.pack (show $ borrowDueDate record)
+              <> ")",
+            record
+          )
   choice <- liftIO $ selectFrom "Select a borrow record to return:" (map fst options)
   case choice of
     Just n | n >= 1 && n <= length options -> return $ Just (snd $ options !! (n - 1))

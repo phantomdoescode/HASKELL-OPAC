@@ -14,7 +14,9 @@ data User = User
     userEmail :: Text,
     userBirthDate :: Day,
     userOccupation :: Text,
-    userOrganization :: Text
+    userOrganization :: Text,
+    userFineBalance :: Double,
+    userType :: Text
   }
   deriving (Show, Eq)
 
@@ -29,6 +31,8 @@ instance FromRow User where
       <*> field -- birth_date
       <*> field -- occupation
       <*> field -- organization
+      <*> field -- fine_balance
+      <*> field -- user_type
 
 instance ToRow User where
   toRow u =
@@ -38,5 +42,7 @@ instance ToRow User where
       toField (userEmail u),
       toField (userBirthDate u),
       toField (userOccupation u),
-      toField (userOrganization u)
+      toField (userOrganization u),
+      toField (userFineBalance u),
+      toField (userType u)
     ]

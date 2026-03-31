@@ -4,6 +4,7 @@ module App.Env
   , runAppM
   ) where
 
+import Control.Concurrent.Chan (Chan)
 import Control.Monad.Reader (ReaderT, runReaderT)
 import Database.SQLite.Simple (Connection)
 
@@ -11,6 +12,7 @@ import Database.SQLite.Simple (Connection)
 data Env = Env
   { envConnection :: Connection
   , envDBPath     :: FilePath
+  , envReturnChan :: Chan Int
   }
 
 -- Every function in the app runs inside AppM

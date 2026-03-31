@@ -6,7 +6,6 @@ module Queries.Book
   , getBookByISBN
   , searchBooks
   , getAllBooks
-  , updateBookCopies
   , deleteBook
   ) where
 
@@ -22,9 +21,9 @@ insertBook b = do
   conn <- asks envConnection
   liftIO $ execute conn
     "INSERT INTO books \
-    \ (title, author, publication, isbn, genre, available_copies, total_copies) \
-    \ VALUES (?, ?, ?, ?, ?, ?, ?)"
-    b
+    \ (title, author, publication, isbn, genre) \
+    \ VALUES (?, ?, ?, ?, ?)"
+    (bookTitle b, bookAuthor b, bookPublication b, bookISBN b, bookGenre b)
 
 getBookByID :: Int -> AppM (Maybe Book)
 getBookByID bid = do
@@ -56,13 +55,6 @@ getAllBooks :: AppM [Book]
 getAllBooks = do
   conn <- asks envConnection
   liftIO $ query_ conn "SELECT * FROM books"
-
-updateBookCopies :: Int -> Int -> AppM ()
-updateBookCopies bid available = do
-  conn <- asks envConnection
-  liftIO $ execute conn
-    "UPDATE books SET available_copies = ? WHERE book_id = ?"
-    (available, bid)
 
 deleteBook :: Int -> AppM ()
 deleteBook bid = do

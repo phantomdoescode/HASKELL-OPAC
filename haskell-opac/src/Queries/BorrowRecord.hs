@@ -5,7 +5,7 @@ module Queries.BorrowRecord
     getBorrowByID,
     getActiveBorrowsByUser,
     getAllBorrowsByUser,
-    getActiveBorrowsByBook,
+    getActiveBorrowsByCopy,
     markAsReturned,
   ) where
 
@@ -22,7 +22,7 @@ insertBorrowRecord r = do
     execute
       conn
       "INSERT INTO borrow_records \
-      \ (user_id, book_id, borrow_date, due_date, return_date, is_returned) \
+      \ (user_id, copy_id, borrow_date, due_date, return_date, is_returned) \
       \ VALUES (?, ?, ?, ?, ?, ?)"
       r
 
@@ -57,14 +57,14 @@ getAllBorrowsByUser uid = do
       "SELECT * FROM borrow_records WHERE user_id = ?"
       (Only uid)
 
-getActiveBorrowsByBook :: Int -> AppM [BorrowRecord]
-getActiveBorrowsByBook bid = do
+getActiveBorrowsByCopy :: Int -> AppM [BorrowRecord]
+getActiveBorrowsByCopy cid = do
   conn <- asks envConnection
   liftIO $
     query
       conn
-      "SELECT * FROM borrow_records WHERE book_id = ? AND is_returned = 0"
-      (Only bid)
+      "SELECT * FROM borrow_records WHERE copy_id = ? AND is_returned = 0"
+      (Only cid)
 
 markAsReturned :: Int -> Day -> AppM ()
 markAsReturned bid returnDate = do

@@ -14,7 +14,9 @@ createUsersTable =
     \ email TEXT NOT NULL UNIQUE,\
     \ birth_date TEXT NOT NULL,\
     \ occupation TEXT NOT NULL,\
-    \ organization TEXT NOT NULL\
+    \ organization TEXT NOT NULL,\
+    \ fine_balance REAL NOT NULL DEFAULT 0.0,\
+    \ user_type TEXT NOT NULL DEFAULT 'user'\
     \)"
 
 createBooksTable :: Query
@@ -26,9 +28,17 @@ createBooksTable =
     \ author TEXT NOT NULL,\
     \ publication TEXT NOT NULL,\
     \ isbn TEXT NOT NULL UNIQUE,\
-    \ genre TEXT NOT NULL,\
-    \ available_copies INTEGER NOT NULL DEFAULT 0,\
-    \ total_copies INTEGER NOT NULL DEFAULT 0\
+    \ genre TEXT NOT NULL\
+    \)"
+
+createCopiesTable :: Query
+createCopiesTable =
+  fromString
+    "CREATE TABLE IF NOT EXISTS copies (\
+    \ copy_id INTEGER PRIMARY KEY AUTOINCREMENT,\
+    \ book_id INTEGER NOT NULL REFERENCES books(book_id),\
+    \ control_number TEXT NOT NULL UNIQUE,\
+    \ status TEXT NOT NULL DEFAULT 'Available'\
     \)"
 
 createBorrowRecordsTable :: Query
@@ -37,7 +47,7 @@ createBorrowRecordsTable =
     "CREATE TABLE IF NOT EXISTS borrow_records (\
     \ borrow_id INTEGER PRIMARY KEY AUTOINCREMENT,\
     \ user_id INTEGER NOT NULL REFERENCES users(user_id),\
-    \ book_id INTEGER NOT NULL REFERENCES books(book_id),\
+    \ copy_id INTEGER NOT NULL REFERENCES copies(copy_id),\
     \ borrow_date TEXT NOT NULL,\
     \ due_date TEXT NOT NULL,\
     \ return_date TEXT,\
@@ -52,4 +62,14 @@ createReservationsTable =
     \ user_id INTEGER NOT NULL REFERENCES users(user_id),\
     \ book_id INTEGER NOT NULL REFERENCES books(book_id),\
     \ reservation_date TEXT NOT NULL\
+    \)"
+
+createAuditLogsTable :: Query
+createAuditLogsTable =
+  fromString
+    "CREATE TABLE IF NOT EXISTS audit_logs (\
+    \ log_id INTEGER PRIMARY KEY AUTOINCREMENT,\
+    \ user_id INTEGER REFERENCES users(user_id),\
+    \ action TEXT NOT NULL,\
+    \ timestamp TEXT NOT NULL\
     \)"

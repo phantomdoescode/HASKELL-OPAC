@@ -9,7 +9,6 @@ module Services.Auth
 
 import Control.Monad.Reader (liftIO)
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Data.Time (Day)
 import Crypto.BCrypt
@@ -47,8 +46,9 @@ registerUser
   -> Day   -- birth date
   -> Text  -- occupation
   -> Text  -- organization
+  -> Text  -- uType type
   -> AppM (Either AppError User)
-registerUser email password firstName lastName birthDate occupation organization = do
+registerUser email password firstName lastName birthDate occupation organization uType = do
   -- Check if email already exists
   existing <- getUserByEmail email
   case existing of
@@ -67,6 +67,8 @@ registerUser email password firstName lastName birthDate occupation organization
                 , userBirthDate    = birthDate
                 , userOccupation   = occupation
                 , userOrganization = organization
+                , userFineBalance  = 0.0
+                , userType         = uType
                 }
           insertUser newUser
           return $ Right newUser

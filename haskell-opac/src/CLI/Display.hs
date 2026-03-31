@@ -44,8 +44,6 @@ printBook b = do
   TIO.putStrLn $ "ISBN       : " <> bookISBN b
   TIO.putStrLn $ "Genre      : " <> bookGenre b
   TIO.putStrLn $ "Publisher  : " <> bookPublication b
-  putStrLn     $ "Available  : " <> show (bookAvailableCopies b)
-                                 <> " / " <> show (bookTotalCopies b)
 
 printUser :: User -> IO ()
 printUser u = do
@@ -54,12 +52,13 @@ printUser u = do
   TIO.putStrLn $ "Email      : " <> userEmail u
   TIO.putStrLn $ "Occupation : " <> userOccupation u
   TIO.putStrLn $ "Org        : " <> userOrganization u
+  TIO.putStrLn $ "Fines      : $" <> T.pack (show $ userFineBalance u)
 
 printBorrowRecord :: BorrowRecord -> IO ()
 printBorrowRecord r = do
   printSeparator
   putStrLn $ "Borrow ID  : " <> show (borrowID r)
-  putStrLn $ "Book ID    : " <> show (borrowBookID r)
+  putStrLn $ "Copy ID    : " <> show (borrowCopyID r)
   putStrLn $ "Borrowed   : " <> show (borrowDate r)
   putStrLn $ "Due        : " <> show (borrowDueDate r)
   putStrLn $ "Returned   : " <> show (borrowIsReturned r)
