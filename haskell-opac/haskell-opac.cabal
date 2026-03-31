@@ -13,7 +13,6 @@ author:         Author name here
 maintainer:     example@example.com
 copyright:      2026 Author name here
 license:        BSD-3-Clause
-license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
@@ -41,8 +40,6 @@ library
       Models.User
       Queries.Book
       Queries.BorrowRecord
-      Queries.User
-      Services.Auth
       Queries.Reservation
       Queries.User
       Services.Auth
