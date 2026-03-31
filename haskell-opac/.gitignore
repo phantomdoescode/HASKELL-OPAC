@@ -1,2 +1,5 @@
 .stack-work/
 *~
+opac.db
+haskell-opac.cabal
+*.db
